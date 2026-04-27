@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>QR Scanner</title>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #111;
+      color: white;
+    }
+
+    #reader {
+      width: 300px;
+      margin: auto;
+      margin-top: 20px;
+    }
+
+    #result {
+      font-size: 30px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>House QR Scanner</h2>
+
+<div id="reader"></div>
+<div id="result">Scanning...</div>
+
+<script>
+const scanner = new Html5Qrcode("reader");
+
+function onScanSuccess(decodedText) {
+  // Stop scanning temporarily
+  scanner.pause();
+
+  // Call Google Script
+  fetch("https://script.google.com/macros/s/AKfycbxR1INk-OnK7T4FH9_1zqops40QfEexjDaK-hjcBMhTBE-7OaiAt_iOcPph5fnTTQo/exec?id=" + decodedText)
+    .then(res => res.text())
+    .then(data => {
+
+      if (data === "NOT_FOUND") {
+        document.getElementById("result").innerText = "ID NOT FOUND";
+      } else {
+        let parts = data.split("|");
+        document.getElementById("result").innerText =
+          parts[0] + " is now " + parts[1];
+      }
+
+      // Resume scanning after 1.5 sec
+      setTimeout(() => {
+        document.getElementById("result").innerText = "Scanning...";
+        scanner.resume();
+      }, 1500);
+
+    });
+}
+
+// Start camera
+scanner.start(
+  { facingMode: "environment" },
+  { fps: 10, qrbox: 250 },
+  onScanSuccess
+);
+</script>
+
+</body>
+</html>
