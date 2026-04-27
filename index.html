@@ -37,30 +37,20 @@
 const scanner = new Html5Qrcode("reader");
 
 function onScanSuccess(decodedText) {
-  alert(decodedText);
-
-  scanner.pause();	
-  // Stop scanning temporarily
   scanner.pause();
 
-  // Call Google Script
-  fetch("https://script.google.com/macros/s/AKfycbxR1INk-OnK7T4FH9_1zqops40QfEexjDaK-hjcBMhTBE-7OaiAt_iOcPph5fnTTQo/exec?id=" + decodedText)
+  fetch("https://script.google.com/macros/s/AKfycbydcPjLBT2WwzF0KHlHe547lAzO1S4kPKZQYLfze1987MwrcXr6yNMS4Z-dTzdynMzA/exec?id=" + decodedText)
     .then(res => res.text())
     .then(data => {
 
-      if (data === "NOT_FOUND") {
-        document.getElementById("result").innerText = "ID NOT FOUND";
-      } else {
-        let parts = data.split("|");
-        document.getElementById("result").innerText =
-          parts[0] + " is now " + parts[1];
-      }
+      let parts = data.split("|");
 
-      // Resume scanning after 1.5 sec
+      document.getElementById("result").innerText =
+        parts[0] + " is now " + parts[1];
+
       setTimeout(() => {
-        document.getElementById("result").innerText = "Scanning...";
         scanner.resume();
-      }, 1500);
+      }, 1000);
 
     });
 }
