@@ -52,7 +52,7 @@ function onScanSuccess(decodedText) {
 
   resultEl.innerText = "Processing...";
 
-  fetch("https://script.google.com/macros/s/AKfycbxR1INk-OnK7T4FH9_1zqops40QfEexjDaK-hjcBMhTBE-7OaiAt_iOcPph5fnTTQo/exec?id=" + decodedText)
+  fetch("https://script.google.com/macros/s/AKfycbyaAFtjznEdR8z7SeUDxxgjmNm2QdFYfvaXDvCZsX8rLSkm_86lNu7qwB2kxqcxccOU/exec?id=" + decodedText)
     .then(res => res.text())
     .then(data => {
 
