@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>QR Scanner</title>
+  <title>House QR Scanner</title>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
 
@@ -11,24 +11,39 @@
       text-align: center;
       background: #111;
       color: white;
+      margin: 0;
+    }
+
+    h2 {
+      margin-top: 20px;
+      font-size: 32px;
     }
 
     #reader {
-      width: 300px;
+      width: 320px;
       margin: auto;
       margin-top: 20px;
     }
 
     #result {
-      font-size: 30px;
+      font-size: 28px;
       margin-top: 20px;
+      padding: 10px;
+    }
+
+    .success {
+      color: #00ff88;
+    }
+
+    .error {
+      color: red;
     }
   </style>
 </head>
 
 <body>
 
-<h2>House QR Scanner</h2>
+<h2>🏠 House QR Scanner</h2>
 
 <div id="reader"></div>
 <div id="result">Scanning...</div>
@@ -36,29 +51,41 @@
 <script>
 const scanner = new Html5Qrcode("reader");
 
-function onScanSuccess(decodedText) {
-  // Stop scanning temporarily
-  scanner.pause();
+let scanningLocked = false;
 
-  // Call Google Script
+function onScanSuccess(decodedText) {
+  if (scanningLocked) return; // prevent spam scans
+  scanningLocked = true;
+
+  const resultEl = document.getElementById("result");
+  resultEl.className = "";
+  resultEl.innerText = "Processing...";
+
   fetch("https://script.google.com/macros/s/AKfycbxR1INk-OnK7T4FH9_1zqops40QfEexjDaK-hjcBMhTBE-7OaiAt_iOcPph5fnTTQo/exec?id=" + decodedText)
     .then(res => res.text())
     .then(data => {
 
       if (data === "NOT_FOUND") {
-        document.getElementById("result").innerText = "ID NOT FOUND";
+        resultEl.className = "error";
+        resultEl.innerText = "❌ ID NOT FOUND";
       } else {
         let parts = data.split("|");
-        document.getElementById("result").innerText =
-          parts[0] + " is now " + parts[1];
+        resultEl.className = "success";
+        resultEl.innerText = parts[0] + " is now " + parts[1];
       }
 
-      // Resume scanning after 1.5 sec
+      // unlock scanning after delay
       setTimeout(() => {
-        document.getElementById("result").innerText = "Scanning...";
-        scanner.resume();
+        resultEl.className = "";
+        resultEl.innerText = "Scanning...";
+        scanningLocked = false;
       }, 1500);
 
+    })
+    .catch(() => {
+      resultEl.className = "error";
+      resultEl.innerText = "⚠️ Error connecting";
+      scanningLocked = false;
     });
 }
 
