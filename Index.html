@@ -25,8 +25,9 @@
     }
 
     #result {
-      font-size: 28px;
+      font-size: 32px;
       margin-top: 20px;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -44,7 +45,7 @@ const html5QrCode = new Html5Qrcode("reader");
 
 let scanningLocked = false;
 
-// When QR is scanned
+// ✅ When QR is scanned
 function onScanSuccess(decodedText) {
   if (scanningLocked) return;
   scanningLocked = true;
@@ -56,42 +57,43 @@ function onScanSuccess(decodedText) {
     .then(data => {
 
       if (data === "NOT_FOUND") {
-        resultEl.innerText = "ID NOT FOUND";
+        resultEl.innerText = "❌ ID NOT FOUND";
       } else {
-        const parts = data.split("|");
-        resultEl.innerText = parts[0] + " is now " + parts[1];
+        let parts = data.split("|");
+
+        // 🔥 FINAL FORMAT YOU WANTED
+        resultEl.innerText = parts[0] + " — " + parts[1];
       }
 
       setTimeout(() => {
         resultEl.innerText = "Scanning...";
         scanningLocked = false;
       }, 1500);
+
     })
     .catch(() => {
-      resultEl.innerText = "Error connecting";
+      resultEl.innerText = "⚠️ Error connecting";
       scanningLocked = false;
     });
 }
 
-// 🔥 Start camera properly (fixes Safari issue)
+// ✅ Start camera (Safari-safe)
 Html5Qrcode.getCameras()
   .then(devices => {
-    if (devices.length === 0) {
+    if (!devices.length) {
       resultEl.innerText = "No camera found";
       return;
     }
 
-    const cameraId = devices[0].id;
-
     html5QrCode.start(
-      cameraId,
+      devices[0].id,
       { fps: 10, qrbox: 250 },
       onScanSuccess
     );
 
     resultEl.innerText = "Scanning...";
   })
-  .catch(err => {
+  .catch(() => {
     resultEl.innerText = "Camera permission error";
   });
 </script>
