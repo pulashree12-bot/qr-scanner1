@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>House QR Scanner</title>
+  <title>QR Scanner</title>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
 
@@ -11,90 +11,62 @@
       text-align: center;
       background: #111;
       color: white;
-      margin: 0;
-    }
-
-    h2 {
-      margin-top: 20px;
-      font-size: 32px;
     }
 
     #reader {
-      width: 320px;
+      width: 300px;
       margin: auto;
       margin-top: 20px;
     }
 
     #result {
-      font-size: 28px;
+      font-size: 26px;
       margin-top: 20px;
-      padding: 10px;
-    }
-
-    .success {
-      color: #00ff88;
-    }
-
-    .error {
-      color: red;
     }
   </style>
 </head>
 
 <body>
 
-<h2>🏠 House QR Scanner</h2>
+<h2>QR Scanner</h2>
 
 <div id="reader"></div>
+
 <div id="result">Scanning...</div>
 
 <script>
-const scanner = new Html5Qrcode("reader");
 
-let scanningLocked = false;
+let people = {
+  "101": { name: "Mom", status: "OUT" },
+  "102": { name: "Dad", status: "OUT" },
+  "103": { name: "Brother", status: "OUT" },
+  "104": { name: "You", status: "OUT" }
+};
 
 function onScanSuccess(decodedText) {
-  if (scanningLocked) return; // prevent spam scans
-  scanningLocked = true;
 
-  const resultEl = document.getElementById("result");
-  resultEl.className = "";
-  resultEl.innerText = "Processing...";
+  let person = people[decodedText];
 
-  fetch("https://script.google.com/macros/s/AKfycbxR1INk-OnK7T4FH9_1zqops40QfEexjDaK-hjcBMhTBE-7OaiAt_iOcPph5fnTTQo/exec?id=" + decodedText)
-    .then(res => res.text())
-    .then(data => {
+  if (!person) {
+    document.getElementById("result").innerText = "ID NOT FOUND";
+    return;
+  }
 
-      if (data === "NOT_FOUND") {
-        resultEl.className = "error";
-        resultEl.innerText = "❌ ID NOT FOUND";
-      } else {
-        let parts = data.split("|");
-        resultEl.className = "success";
-        resultEl.innerText = parts[0] + " is now " + parts[1];
-      }
+  // toggle IN / OUT
+  person.status = person.status === "IN" ? "OUT" : "IN";
 
-      // unlock scanning after delay
-      setTimeout(() => {
-        resultEl.className = "";
-        resultEl.innerText = "Scanning...";
-        scanningLocked = false;
-      }, 1500);
-
-    })
-    .catch(() => {
-      resultEl.className = "error";
-      resultEl.innerText = "⚠️ Error connecting";
-      scanningLocked = false;
-    });
+  document.getElementById("result").innerText =
+    person.name + " is now " + person.status;
 }
 
-// Start camera
+const scanner = new Html5Qrcode("reader");
+
 scanner.start(
   { facingMode: "environment" },
   { fps: 10, qrbox: 250 },
   onScanSuccess
 );
+
 </script>
 
 </body>
