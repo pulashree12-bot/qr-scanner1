@@ -20,114 +20,54 @@
     }
 
     #result {
-      font-size: 24px;
-      margin-top: 15px;
-    }
-
-    .box {
-      margin: 10px auto;
-      padding: 10px;
-      border: 1px solid white;
-      width: 250px;
-    }
-
-    button {
-      margin-top: 10px;
-      padding: 10px;
-      font-size: 16px;
-      cursor: pointer;
+      font-size: 30px;
+      margin-top: 20px;
     }
   </style>
 </head>
 
 <body>
 
-<h2>QR Scanner</h2>
+<h2>House QR Scanner</h2>
 
 <div id="reader"></div>
-
-<button onclick="switchCamera()">🔁 Flip Camera</button>
-
 <div id="result">Scanning...</div>
 
-<div id="list"></div>
-
 <script>
+const scanner = new Html5Qrcode("reader");
 
-let people = {
-  "101": { name: "Mom", status: "OUT" },
-  "102": { name: "Dad", status: "OUT" },
-  "103": { name: "Aaryan", status: "OUT" },
-  "104": { name: "Shree", status: "OUT" }
-};
-
-let currentFacingMode = "environment";
-
-let scanner = new Html5Qrcode("reader");
-
-// start scanner
-function startScanner() {
-  scanner.start(
-    { facingMode: currentFacingMode },
-    {
-      fps: 10,
-      qrbox: 250
-    },
-    onScanSuccess
-  );
-}
-
-// stop + switch camera
-function switchCamera() {
-  scanner.stop().then(() => {
-    currentFacingMode =
-      currentFacingMode === "environment"
-        ? "user"
-        : "environment";
-
-    startScanner();
-  });
-}
-
-// scan result
 function onScanSuccess(decodedText) {
+  // Stop scanning temporarily
+  scanner.pause();
 
-  let person = people[decodedText];
+  // Call Google Script
+  fetch("YOUR_SCRIPT_URL_HERE?id=" + decodedText)
+    .then(res => res.text())
+    .then(data => {
 
-  if (!person) {
-    document.getElementById("result").innerText = "ID NOT FOUND";
-    return;
-  }
+      if (data === "NOT_FOUND") {
+        document.getElementById("result").innerText = "ID NOT FOUND";
+      } else {
+        let parts = data.split("|");
+        document.getElementById("result").innerText =
+          parts[0] + " is now " + parts[1];
+      }
 
-  // toggle IN/OUT
-  person.status = person.status === "IN" ? "OUT" : "IN";
+      // Resume scanning after 1.5 sec
+      setTimeout(() => {
+        document.getElementById("result").innerText = "Scanning...";
+        scanner.resume();
+      }, 1500);
 
-  document.getElementById("result").innerText =
-    person.name + " is now " + person.status;
-
-  updateUI();
+    });
 }
 
-// update display
-function updateUI() {
-  let html = "";
-
-  for (let id in people) {
-    html += `
-      <div class="box">
-        <b>${people[id].name}</b><br>
-        ${people[id].status}
-      </div>
-    `;
-  }
-
-  document.getElementById("list").innerHTML = html;
-}
-
-// start
-startScanner();
-updateUI();
-
+// Start camera
+scanner.start(
+  { facingMode: "environment" },
+  { fps: 10, qrbox: 250 },
+  onScanSuccess
+);
 </script>
 
 </body>
